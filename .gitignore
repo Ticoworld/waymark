@@ -1,6 +1,7 @@
 # Root repository contains experiment documents/configuration/scripts only.
 /*
 !/.gitignore
+!/.gitattributes
 !/docs/
 !/scripts/
 !/README.md

@@ -1,0 +1,2 @@
+# Preserve the documented SHA-256 of the public BIP39 dictionary on Windows.
+scripts/bip39-english.txt text eol=lf

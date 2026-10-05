@@ -1,0 +1,13 @@
+{
+  "id": "Microsoft.VC.14.44.17.14.CRT.x64.Store.base",
+  "version": "14.44.35226",
+  "payload": {
+    "fileName": "Microsoft.VC.14.44.17.14.CRT.x64.Store.base.vsix",
+    "sha256": "9135b03c0df53c7a0aa9bef7230a1c2ff4263a0ee7baa7e419d034f484f6bb56",
+    "size": 28032384,
+    "url": "https://download.visualstudio.microsoft.com/download/pr/67cf767c-5e71-47c2-a54a-cd5631e28942/9135b03c0df53c7a0aa9bef7230a1c2ff4263a0ee7baa7e419d034f484f6bb56/Microsoft.VC.14.44.17.14.CRT.x64.Store.base.vsix",
+    "signer": {
+      "$ref": "1"
+    }
+  }
+}

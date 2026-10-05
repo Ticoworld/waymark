@@ -16,7 +16,10 @@ def main():
         else:k=bytes.fromhex(item['privateKey'].removeprefix('0x'))
         needles.extend([k,k.hex().encode(),k.hex().upper().encode()])
     files=[]
-    for root in (ROOT/'docs',ROOT/'scripts',ROOT/'runs/wo3-setup'):
+    # PowerShell redirection can produce UTF-16 logs; check both encodings.
+    text_needles=[n for n in needles if all(b<128 for b in n)]
+    needles.extend(n.decode('ascii').encode(enc) for n in text_needles for enc in ('utf-16-le','utf-16-be'))
+    for root in (ROOT/'docs',ROOT/'scripts',ROOT/'runs/wo3-setup',ROOT/'runs/wo3b1'):
         files.extend(p for p in root.rglob('*') if p.is_file() and not any(s in ('venv','__pycache__') for s in p.parts))
     for path in files:
         raw=path.read_bytes()

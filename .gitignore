@@ -9,6 +9,7 @@
 # Explicit exclusions, including nested occurrences in allowed directories.
 repos/
 runs/
+private/
 evidence/private/
 **/target/
 **/build/

@@ -1,8 +1,9 @@
+param([string]$OutputRelativePath = 'runs/wo3-setup/ui-helper')
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
 $sdk = Join-Path $env:LOCALAPPDATA 'Android/Sdk'
 $jdk = 'C:/Program Files/Android/Android Studio/jbr'
-$out = Join-Path $root 'runs/wo3-setup/ui-helper'
+$out = Join-Path $root $OutputRelativePath
 New-Item -ItemType Directory -Force "$out/classes" | Out-Null
 $cp = "$sdk/platforms/android-36/android.jar;$sdk/platforms/android-36/uiautomator.jar;$sdk/platforms/android-36/optional/android.test.base.jar"
 & "$jdk/bin/javac.exe" -encoding UTF-8 -source 17 -target 17 -classpath $cp -d "$out/classes" "$root/scripts/helper/H02FillPhrase.java"

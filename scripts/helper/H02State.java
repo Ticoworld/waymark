@@ -21,6 +21,7 @@ import android.system.OsConstants;
  * All Room page copies made by stage/rollback stay in the DESTINATION sandbox.
  */
 public final class H02State {
+    static int accountCount=2;
     static final String ID="091b40f9618fee3fc8032ff01255a9a4";
     static final String[] W={"walletId","type","derivationPath","parentWalletId","accountIndex","mainnetAddress","testnetAddress"};
     static final String[] P={"walletId","network","lightStartBlockNumber","localSavedBlockNumber","updatedAt"};
@@ -73,14 +74,14 @@ public final class H02State {
         JSONObject out=new JSONObject();JSONArray w;
         try(SQLiteDatabase d=open(within(root,ROOM),true)){
             roomCheck(d);out.put("schema",17);out.put("identity",ID);
-            w=rows(d,"wallets",W,"","walletId");need(w.length()==2);out.put("wallets",w);
+            w=rows(d,"wallets",W,"","walletId");need(w.length()==accountCount);out.put("wallets",w);
             out.put("progress",rows(d,"sync_progress",P," WHERE network='TESTNET'","walletId"));
             out.put("candidates",rows(d,"sub_account_candidates",C,"","parentWalletId,derivationPath"));
             boolean settled=true;for(String t:new String[]{"pending_broadcasts","pending_dao_withdraws","pending_dao_unlocks"})settled &= scalar(d,"SELECT count(*) FROM "+t)==0;
             settled &= scalar(d,"SELECT count(*) FROM transactions WHERE status!='CONFIRMED' OR isLocal!=0")==0;
             out.put("pendingFree",settled);
             // Only count matched IDs; no ciphertext, IV or key value crosses this boundary.
-            out.put("keysPresent",scalar(d,"SELECT count(*) FROM wallets w JOIN key_material k ON w.walletId=k.walletId")==2);
+            out.put("keysPresent",scalar(d,"SELECT count(*) FROM wallets w JOIN key_material k ON w.walletId=k.walletId")==accountCount);
         }
         Set<String> allowed=prefNames(w);JSONObject prefs=new JSONObject();boolean migrated=false;
         NodeList nodes=xml(within(root,PREF)).getDocumentElement().getChildNodes();
@@ -118,6 +119,16 @@ public final class H02State {
             }
         }
     }
+    static JSONObject observeRoom(File root) throws Exception {
+        JSONObject out=new JSONObject();
+        try(SQLiteDatabase d=open(within(root,ROOM),true)){
+            roomCheck(d);
+            out.put("transactions",rows(d,"transactions",new String[]{"txHash","blockNumber","blockHash","network","status","isLocal","walletId","balanceChange","fee_shannons"}," WHERE network='TESTNET'","txHash,walletId"));
+            out.put("balances",rows(d,"balance_cache",new String[]{"walletId","network","address","capacity","blockNumber"}," WHERE network='TESTNET'","walletId"));
+            out.put("daoCount",scalar(d,"SELECT count(*) FROM dao_cells WHERE network='TESTNET'"));
+        }
+        return out;
+    }
     static void copy(File a,File b) throws Exception {need(!b.exists()&&a.isFile());Files.copy(a.toPath(),b.toPath());try(RandomAccessFile r=new RandomAccessFile(b,"rw")){r.getFD().sync();}syncDir(b.getParentFile());}
     static void checkFields(JSONObject j,String[] allowed) throws Exception {
         Set<String> s=new HashSet<>(Arrays.asList(allowed));need(j.length()==s.size());Iterator<String> it=j.keys();while(it.hasNext())need(s.contains(it.next()));
@@ -142,19 +153,21 @@ public final class H02State {
     static void stage(File root,File dir,String planDigest) throws Exception {
         need(!within(root,"files/h02-restore-journal.json").exists());
         need(hash(new File(dir,"plan.json")).equals(planDigest));JSONObject p=json(new File(dir,"plan.json"));
-        checkFields(p,new String[]{"format","destinationScripts","progress","candidates","prefs","nativeSha256"});need(p.getString("format").equals("h02-p0-v1"));
+        checkFields(p,new String[]{"format","destinationScripts","progress","candidates","prefs","nativeSha256"});
+        need(p.getString("format").equals("h02-p0-v1")||p.getString("format").equals("h02-p0-b1-one-account-v1"));
+        accountCount=p.getString("format").equals("h02-p0-v1")?2:1;
         need(hash(new File(dir,"native.sqlite")).equals(p.getString("nativeSha256")));
         JSONObject current=exportApp(root),expected=json(new File(dir,"destination.json"));
         need(canonical(current).equals(canonical(expected))&&current.getBoolean("keysPresent")&&current.getBoolean("pendingFree")&&current.getBoolean("migrationReady"));
         JSONArray w=current.getJSONArray("wallets");Set<String> ids=new HashSet<>();for(int i=0;i<w.length();i++)ids.add(w.getJSONObject(i).getString("walletId"));
-        need(p.getJSONObject("destinationScripts").length()==2);for(String id:ids)need(p.getJSONObject("destinationScripts").has(id));
+        need(p.getJSONObject("destinationScripts").length()==accountCount);for(String id:ids)need(p.getJSONObject("destinationScripts").has(id));
         File staged=new File(dir,"staged");need(staged.mkdir());File rd=new File(staged,"room.db");
         for(String suffix:new String[]{"","-wal","-shm"}){File f=within(root,ROOM+suffix);if(f.exists())copy(f,new File(staged,"room.db"+suffix));}
         try(SQLiteDatabase d=open(rd,false)){
             roomCheck(d);String before=keyDigest(d);d.beginTransaction();
             try{
                 d.delete("sync_progress","network=?",new String[]{"TESTNET"});d.delete("sub_account_candidates",null,null);
-                JSONArray a=p.getJSONArray("progress");need(a.length()==2);Set<String> seen=new HashSet<>();
+                JSONArray a=p.getJSONArray("progress");need(a.length()==accountCount);Set<String> seen=new HashSet<>();
                 for(int i=0;i<a.length();i++){JSONObject r=a.getJSONObject(i);need(ids.contains(r.getString("walletId"))&&seen.add(r.getString("walletId"))&&r.getString("network").equals("TESTNET"));d.insertOrThrow("sync_progress",null,values(r,P));}
                 a=p.getJSONArray("candidates");need(a.length()<=500);for(int i=0;i<a.length();i++){JSONObject r=a.getJSONObject(i);need(ids.contains(r.getString("parentWalletId")));d.insertOrThrow("sub_account_candidates",null,values(r,C));}
                 for(String t:new String[]{"transactions","balance_cache","header_cache","dao_cells"})d.delete(t,"network=?",new String[]{"TESTNET"});
@@ -197,6 +210,7 @@ public final class H02State {
     public static void main(String[] a) {
         try{
             need(a.length>=3);String action=a[0];File root=new File(a[1]).getCanonicalFile(),dir=new File(a[2]).getCanonicalFile();
+            if(action.equals("export-b1")||action.equals("inspect-b1")||action.equals("observe-b1")){accountCount=1;action=action.substring(0,action.length()-3);}
             boolean sandbox=root.getPath().equals("/data/user/0/com.rjnr.pocketnode")||root.getPath().equals("/data/data/com.rjnr.pocketnode");
             boolean synthetic=root.getPath().startsWith("/data/local/tmp/h02-synthetic-");need(sandbox||synthetic);
             need(dir.getPath().startsWith(root.getPath()+"/files/h02-"));
@@ -212,10 +226,11 @@ public final class H02State {
                 }
                 try(SQLiteDatabase db=open(test,true)){need(scalar(db,"SELECT sum(value) FROM h02_probe")==73);}
             }
-            else if(action.equals("export")||action.equals("inspect")){
+            else if(action.equals("export")||action.equals("inspect")||action.equals("observe")){
                 need(dir.mkdir());JSONObject app=exportApp(root);need(app.getBoolean("pendingFree")&&app.getBoolean("migrationReady")&&app.getBoolean("keysPresent"));
                 writeJSON(new File(dir,"app.json"),app);
-                if(action.equals("export"))snapshotNative(within(root,NATIVE),new File(dir,"native.sqlite"));
+                if(action.equals("export")||action.equals("observe"))snapshotNative(within(root,NATIVE),new File(dir,"native.sqlite"));
+                if(action.equals("observe"))writeJSON(new File(dir,"public.json"),observeRoom(root));
             }else if(action.equals("stage")){need(a.length==4);stage(root,dir,a[3]);}
             else if(action.equals("commit"))commit(root,dir,false);
             else if(action.equals("commit-interrupt")){need(synthetic);commit(root,dir,true);}

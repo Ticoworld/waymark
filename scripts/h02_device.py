@@ -65,7 +65,7 @@ class Device:
         policy.require(self.sandbox('sha256sum',remote).decode().split()[0]==hashlib.sha256(data).hexdigest(),'remote-write-digest')
 
     def get(self,path):
-        policy.require(re.fullmatch(re.escape(REMOTE_ROOT)+r'/files/h02-(?:export|inspect)-[a-f0-9]{16}/(?:app.json|native.sqlite)',path) is not None,'unapproved-export-member')
+        policy.require(re.fullmatch(re.escape(REMOTE_ROOT)+r'/files/h02-(?:export|inspect)-[a-f0-9]{16}/(?:app.json|native.sqlite|public.json)',path) is not None,'unapproved-export-member')
         return base64.b64decode(b''.join(self.sandbox('base64',path).split()),validate=True)
 
     def deploy(self):
@@ -80,12 +80,12 @@ class Device:
         r=self.sandbox('env','CLASSPATH='+self.jar,'/system/bin/app_process','/system/bin','h02.H02State',action,REMOTE_ROOT,directory,*args)
         policy.require(r.strip()==b'H02_HELPER_OK','helper-refused');self.stopped()
 
-    def inspect(self):
+    def inspect(self,profile=policy.FORMAT):
         directory=REMOTE_ROOT+'/files/h02-inspect-'+uuid.uuid4().hex[:16]
-        self.helper('inspect',directory)
+        self.helper('inspect-b1' if profile==policy.B1_FORMAT else 'inspect',directory)
         raw=self.get(directory+'/app.json')
         app=json.loads(raw,object_pairs_hook=policy.unique_object)
-        policy.validate_app(app,destination=True)
+        policy.validate_app(app,destination=True,profile=profile)
         return raw,app
 
 def run_dir(path):
@@ -106,26 +106,34 @@ def export(a):
     d=Device(a.serial,a.apk_sha256);out=run_dir(a.out)
     d.freeze();d.deploy()
     remote=REMOTE_ROOT+'/files/h02-export-'+uuid.uuid4().hex[:16]
-    d.helper('export',remote)
+    d.helper('export-b1' if a.profile==policy.B1_FORMAT else 'export',remote)
     for name in ('app.json','native.sqlite'):
         (out/name).write_bytes(d.get(remote+'/'+name))
-    digest=policy.seal(out,a.apk_sha256,a.genesis,a.boundary,a.boundary_hash,policy.read_json(Path(a.coverage)))
+    digest=policy.seal(out,a.apk_sha256,a.genesis,a.boundary,a.boundary_hash,policy.read_json(Path(a.coverage)),profile=a.profile)
     print('EXPORT_POLICY_PASS; Pocket remains disabled')
     print('Trusted manifest SHA-256: '+digest)
 
-def stage(a):
+def stage(a,event=None):
+    event=event or (lambda name:None)
     # All package rejection gates run before stopping/modifying a destination.
-    policy.validate(Path(a.package),a.trust,a.apk_sha256,a.genesis)
+    event('package_validation_begin')
+    manifest,_=policy.validate(Path(a.package),a.trust,a.apk_sha256,a.genesis)
+    event('package_validation_complete')
     d=Device(a.serial,a.apk_sha256);d.freeze();d.deploy()
-    raw,destination=d.inspect()
+    raw,destination=d.inspect(manifest['format'])
     plan=policy.restore_plan(Path(a.package),a.trust,a.apk_sha256,a.genesis,destination)
+    event('destination_mapping_validated')
     token=uuid.uuid4().hex[:16];remote=REMOTE_ROOT+'/files/h02-stage-'+token
     d.sandbox('mkdir','-m','700',remote)
+    event('package_transfer_begin')
     b=policy.encode(plan);d.put(remote+'/plan.json',b);d.put(remote+'/destination.json',raw)
     d.put(remote+'/native.sqlite',(Path(a.package)/'native.sqlite').read_bytes())
+    event('package_transfer_complete')
     d.helper('stage',remote,__import__('hashlib').sha256(b).hexdigest())
+    event('restore_staged')
     print('RESTORE_STAGED; Pocket remains disabled; no activation or launch')
     print('Stage token: '+token)
+    return token
 
 def activate(a):
     policy.require(re.fullmatch('[0-9a-f]{16}',a.token) is not None,'invalid-stage-token')
@@ -142,15 +150,18 @@ def enable(a):
     print('Pocket enabled, not launched')
 
 def main():
+    global HELPER
     p=argparse.ArgumentParser(description=__doc__);sub=p.add_subparsers(dest='action',required=True)
     for name in ('export','stage','commit','rollback','enable'):
-        q=sub.add_parser(name);q.add_argument('--serial',required=True);q.add_argument('--apk-sha256',required=True)
+        q=sub.add_parser(name);q.add_argument('--serial',required=True);q.add_argument('--apk-sha256',required=True);q.add_argument('--helper',type=Path,default=HELPER)
         if name in ('export','stage'):q.add_argument('--genesis',required=True)
         if name=='export':
+            q.add_argument('--profile',choices=[policy.FORMAT,policy.B1_FORMAT],default=policy.FORMAT)
             q.add_argument('--out',required=True);q.add_argument('--boundary',required=True,type=int);q.add_argument('--boundary-hash',required=True);q.add_argument('--coverage',required=True)
         if name=='stage':q.add_argument('--package',required=True);q.add_argument('--trust',required=True)
         if name in ('commit','rollback'):q.add_argument('--token',required=True)
     a=p.parse_args()
+    HELPER=a.helper.resolve()
     {'export':export,'stage':stage,'commit':activate,'rollback':activate,'enable':enable}[a.action](a)
 
 if __name__=='__main__':

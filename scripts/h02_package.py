@@ -1,7 +1,7 @@
 """Strict, test-only Pocket 1.8.5 package policy. No wallet secrets or cloud APIs.
 
 Native snapshots are trusted-self inputs, not proofs of historical completeness.
-Only TESTNET, one mnemonic parent and account 1 are qualified by this profile.
+TESTNET only: legacy two-account policy and explicit B1 single-parent policy.
 """
 import argparse
 import hashlib
@@ -18,6 +18,7 @@ LC_TREE = '3ac3e0ce1f4e46897d188b76c5b841b9097fa506'
 IDENTITY = '091b40f9618fee3fc8032ff01255a9a4'
 CODE_HASH = '9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8'
 FORMAT = 'h02-p0-v1'
+B1_FORMAT = 'h02-p0-b1-one-account-v1'
 MEMBERS = {'manifest.json', 'app.json', 'native.sqlite'}
 WALLET = {'walletId','type','derivationPath','parentWalletId','accountIndex','mainnetAddress','testnetAddress'}
 PROGRESS = {'walletId','network','lightStartBlockNumber','localSavedBlockNumber','updatedAt'}
@@ -115,21 +116,23 @@ def script_from_address(address, network):
     require(code.hex()==CODE_HASH and typ==1 and len(args)==20, 'unsupported-script')
     return (struct.pack('<IIII',73,16,48,49)+code+bytes([typ])+struct.pack('<I',20)+args).hex()
 
-def validate_app(app, destination=False):
+def validate_app(app, destination=False, profile=FORMAT):
+    require(profile in (FORMAT,B1_FORMAT),'unsupported-profile')
+    count=1 if profile==B1_FORMAT else 2
     keys(app, APP_KEYS)
     require(app['schema']==17 and app['identity']==IDENTITY,'room-version')
     require(app['migrationReady'] is True and app['pendingFree'] is True and app['keysPresent'] is True,'source-not-settled-or-keys-missing')
-    require(type(app['wallets']) is list and len(app['wallets'])==2, 'two-accounts-required')
+    require(type(app['wallets']) is list and len(app['wallets'])==count, 'account-count-profile')
     ids=set();scripts={}; parent=None
     for w in app['wallets']:
         keys(w,WALLET);ident(w['walletId']);require(w['walletId'] not in ids,'duplicate-wallet');ids.add(w['walletId'])
-        require(w['type']=='mnemonic' and type(w['accountIndex']) is int and w['accountIndex'] in (0,1),'account-profile')
+        require(w['type']=='mnemonic' and type(w['accountIndex']) is int and w['accountIndex'] in range(count),'account-profile')
         require(w['derivationPath']=="m/44'/309'/%d'/0/0"%w['accountIndex'],'account-path')
         if w['accountIndex']==0:
             require(w['parentWalletId'] is None and parent is None,'parent-map');parent=w['walletId']
         scripts[w['walletId']]=script_from_address(w['testnetAddress'],'TESTNET')
         require(scripts[w['walletId']]==script_from_address(w['mainnetAddress'],'MAINNET'),'address-script-mismatch')
-    require(parent is not None and len(set(scripts.values()))==2,'identity-collision')
+    require(parent is not None and len(set(scripts.values()))==count,'identity-collision')
     for w in app['wallets']:
         if w['accountIndex']==1: require(w['parentWalletId']==parent,'child-map')
     require(type(app['progress']) is list,'progress-type')
@@ -146,6 +149,7 @@ def validate_app(app, destination=False):
         require(re.fullmatch(r"m/44'/309'/\d+'/[01]/\d+",r['derivationPath']) is not None,'candidate-path')
         require(r['derivationPath'] not in seen,'duplicate-candidate');seen.add(r['derivationPath'])
         require(r['state'] in ('PENDING','FOUND','RESTORED','EMPTY'),'candidate-state')
+        if profile==B1_FORMAT: require(r['state'] in ('PENDING','EMPTY'),'b1-no-additional-populated-account')
         hx(r['scriptArgs'].removeprefix('0x'),20)
         for k in ('accountIndex','createdAt','registeredFromBlock'): integer(r[k])
     require(type(app['prefs']) is dict,'preferences-type')
@@ -215,7 +219,7 @@ def validate(package, trusted_digest, apk_hash, genesis, allow_synthetic=False):
     for p in package.iterdir(): require(p.is_file() and not p.is_symlink(),'unsafe-member')
     require(sha(package/'manifest.json')==trusted_digest,'manifest-trust-digest')
     m=read_json(package/'manifest.json');keys(m,MANIFEST_KEYS);secret_gate(encode(m))
-    require(m['format']==FORMAT and m['pocketCommit']==PIN and m['lcTree']==LC_TREE and m['versionName']=='1.8.5' and m['versionCode']==27 and m['roomSchema']==17 and m['roomIdentity']==IDENTITY,'unsupported-version')
+    require(m['format'] in (FORMAT,B1_FORMAT) and m['pocketCommit']==PIN and m['lcTree']==LC_TREE and m['versionName']=='1.8.5' and m['versionCode']==27 and m['roomSchema']==17 and m['roomIdentity']==IDENTITY,'unsupported-version')
     require(m['abi']=='x86_64' and m['nativeSchema']==NATIVE_SCHEMA and m['captureMethod']==CAPTURE_METHOD and m['omissions']==OMISSIONS,'unsupported-capture-profile')
     require(m['kind']=='candidate' or (allow_synthetic and m['kind']=='synthetic'),'synthetic-not-restorable')
     require(m['network']=='TESTNET' and m['genesis']==genesis,'wrong-network')
@@ -225,21 +229,27 @@ def validate(package, trusted_digest, apk_hash, genesis, allow_synthetic=False):
     for name,entry in m['files'].items():
         keys(entry,{'bytes','sha256'});integer(entry['bytes'],1);hx(entry['sha256'],32)
         require((package/name).stat().st_size==entry['bytes'] and sha(package/name)==entry['sha256'],'member-hash')
-    app=read_json(package/'app.json');scripts=validate_app(app)
+    app=read_json(package/'app.json');scripts=validate_app(app,profile=m['format'])
     require(m['scripts']==scripts,'manifest-script-mismatch')
     keys(m['coverage'],set(scripts))
     regs=inspect_native(package/'native.sqlite',genesis,m['kind']=='candidate')
     require(m['nativeProgress']==regs,'native-progress-manifest')
+    if m['format']==B1_FORMAT:
+        allowed={s+':0' for s in scripts.values()}
+        for c in app['candidates']:
+            packed=struct.pack('<IIII',73,16,48,49)+bytes.fromhex(CODE_HASH)+b'\x01'+struct.pack('<I',20)+hx(c['scriptArgs'].removeprefix('0x'),20)
+            allowed.add(packed.hex()+':0')
+        require(set(regs)<=allowed,'unknown-b1-registration')
     for row in app['progress']:
         wid=row['walletId'];start=m['coverage'][wid];integer(start)
         require(start<=m['boundary']<=row['localSavedBlockNumber']<=regs.get(scripts[wid]+':0',-1),'incomplete-native-progress')
     return m,app
 
-def seal(package, apk_hash, genesis, boundary, boundary_hash, coverage, kind='candidate'):
+def seal(package, apk_hash, genesis, boundary, boundary_hash, coverage, kind='candidate', profile=FORMAT):
     package=Path(package)
     require({p.name for p in package.iterdir()}=={'app.json','native.sqlite'},'unapproved-extraction-members')
-    app=read_json(package/'app.json');scripts=validate_app(app)
-    m=dict(format=FORMAT,kind=kind,pocketCommit=PIN,lcTree=LC_TREE,versionName='1.8.5',versionCode=27,roomSchema=17,roomIdentity=IDENTITY,apkSha256=apk_hash,network='TESTNET',genesis=genesis,boundary=boundary,boundaryHash=boundary_hash,coverage=coverage,scripts=scripts,files={n:{'bytes':(package/n).stat().st_size,'sha256':sha(package/n)} for n in ('app.json','native.sqlite')})
+    app=read_json(package/'app.json');scripts=validate_app(app,profile=profile)
+    m=dict(format=profile,kind=kind,pocketCommit=PIN,lcTree=LC_TREE,versionName='1.8.5',versionCode=27,roomSchema=17,roomIdentity=IDENTITY,apkSha256=apk_hash,network='TESTNET',genesis=genesis,boundary=boundary,boundaryHash=boundary_hash,coverage=coverage,scripts=scripts,files={n:{'bytes':(package/n).stat().st_size,'sha256':sha(package/n)} for n in ('app.json','native.sqlite')})
     m.update(abi='x86_64',nativeSchema=NATIVE_SCHEMA,nativeProgress=inspect_native(package/'native.sqlite',genesis,kind=='candidate'),captureMethod=CAPTURE_METHOD,omissions=OMISSIONS)
     # Create exclusively; a failed gate leaves an untrusted package, never a success receipt.
     with (package/'manifest.json').open('xb') as f:f.write(encode(m))
@@ -249,7 +259,7 @@ def seal(package, apk_hash, genesis, boundary, boundary_hash, coverage, kind='ca
 
 def restore_plan(package, digest, apk_hash, genesis, destination):
     m,app=validate(package,digest,apk_hash,genesis)
-    dst_scripts=validate_app(destination,destination=True)
+    dst_scripts=validate_app(destination,destination=True,profile=m['format'])
     src_scripts=m['scripts'];mapping={}
     for sw in app['wallets']:
         matches=[dw for dw in destination['wallets'] if dst_scripts[dw['walletId']]==src_scripts[sw['walletId']] and dw['derivationPath']==sw['derivationPath'] and dw['accountIndex']==sw['accountIndex']]
@@ -266,7 +276,7 @@ def restore_plan(package, digest, apk_hash, genesis, destination):
         for old,new in mapping.items():
             if k.startswith(old+'_'): k=new+k[len(old):];break
         prefs[k]=v
-    return {'format':FORMAT,'destinationScripts':dst_scripts,'progress':progress,'candidates':candidates,'prefs':prefs,'nativeSha256':m['files']['native.sqlite']['sha256']}
+    return {'format':m['format'],'destinationScripts':dst_scripts,'progress':progress,'candidates':candidates,'prefs':prefs,'nativeSha256':m['files']['native.sqlite']['sha256']}
 
 def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('package',type=Path);p.add_argument('--trust',required=True);p.add_argument('--apk-sha256',required=True);p.add_argument('--genesis',required=True);p.add_argument('--allow-synthetic',action='store_true')

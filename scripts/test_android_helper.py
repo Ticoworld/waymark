@@ -27,7 +27,7 @@ def helper(action,root,stage,*a):
     b=shell('env','CLASSPATH=/data/local/tmp/h02-helper-test.jar','app_process','/system/bin','h02.H02State',action,root,stage,*a)
     p.require(b.strip()==b'H02_HELPER_OK','synthetic-helper-failed')
 
-def make_source(directory,app):
+def make_source(directory,app,profile=p.FORMAT):
     (directory/'databases').mkdir(parents=True);(directory/'shared_prefs').mkdir();(directory/'files/data/testnet').mkdir(parents=True)
     schema=json.loads((ROOT/'repos/pocket-node/android/app/schemas/com.rjnr.pocketnode.data.database.AppDatabase/17.json').read_text())['database']
     db=sqlite3.connect(directory/'databases/pocket_node.db')
@@ -52,7 +52,7 @@ def make_source(directory,app):
         else:e.set('value',str(v).lower())
     E.ElementTree(xml).write(directory/'shared_prefs/ckb_wallet_prefs.xml',encoding='utf-8',xml_declaration=True)
     (directory/'shared_prefs/ckb_pin_prefs.xml').write_text('<map><string name="pin_hash">H02_TEST_SECRET_PIN</string></map>')
-    native_fixture(directory/'files/data/testnet/store.db',app)
+    native_fixture(directory/'files/data/testnet/store.db',app,profile)
 
 def main():
     p.require(adb('emu','avd','name').decode().splitlines()[0]=='H02_P0_API36_X64','wrong-emulator')

@@ -1,8 +1,10 @@
+param([string]$OutputRelativePath='runs/wo2/helper')
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
 $sdk = Join-Path $env:LOCALAPPDATA 'Android/Sdk'
 $jdk = 'C:/Program Files/Android/Android Studio/jbr'
-$out = Join-Path $root 'runs/wo2/helper'
+$out = [IO.Path]::GetFullPath((Join-Path $root $OutputRelativePath))
+if (-not $out.StartsWith(([IO.Path]::GetFullPath((Join-Path $root 'runs')) + [IO.Path]::DirectorySeparatorChar))) { throw 'Output must be under runs' }
 New-Item -ItemType Directory -Force "$out/classes" | Out-Null
 & "$jdk/bin/javac.exe" -encoding UTF-8 -source 17 -target 17 -classpath "$sdk/platforms/android-36/android.jar" -d "$out/classes" "$root/scripts/helper/H02State.java"
 if ($LASTEXITCODE) { throw 'Helper javac failed' }

@@ -19,8 +19,20 @@ def main():
     # PowerShell redirection can produce UTF-16 logs; check both encodings.
     text_needles=[n for n in needles if all(b<128 for b in n)]
     needles.extend(n.decode('ascii').encode(enc) for n in text_needles for enc in ('utf-16-le','utf-16-be'))
-    for root in (ROOT/'docs',ROOT/'scripts',ROOT/'runs/wo3-setup',ROOT/'runs/wo3b1'):
-        files.extend(p for p in root.rglob('*') if p.is_file() and not any(s in ('venv','__pycache__') for s in p.parts))
+    for root in (ROOT/'docs',ROOT/'scripts',ROOT/'runs/wo3-setup',ROOT/'runs/wo3b1',ROOT/'runs/wo3b1-r2'):
+        # Normal recovered Android userdata is a secret-bearing installation,
+        # not a public artifact/package. Scan reports, scripts and captures;
+        # exclude each isolated AVD directory explicitly.
+        for p in root.rglob('*'):
+            if not p.is_file() or any(s in ('venv','__pycache__','avd') for s in p.parts):continue
+            # Once SOURCE is lost, do not reread its frozen native captures,
+            # even for an audit. The explicitly retained sanitized packages
+            # remain in scope and are scanned in full.
+            r2=ROOT/'runs/wo3b1-r2'
+            if (r2/'source/LOST.json').exists() and p.is_relative_to(r2):
+                relative=p.relative_to(r2)
+                if relative.parts[0].startswith('source') and p.name=='native.sqlite':continue
+            files.append(p)
     for path in files:
         raw=path.read_bytes()
         if any(n in raw for n in needles):raise ValueError()
@@ -28,7 +40,7 @@ def main():
     if any(p.startswith(('private/','runs/','repos/')) for p in tracked):raise ValueError()
     result=subprocess.run(['git','check-ignore',str(FIXTURE)],cwd=ROOT,capture_output=True)
     if result.returncode!=0:raise ValueError()
-    print('PRIVATE_BOUNDARY_AUDIT_PASS; '+str(len(files))+' docs/scripts/new-output files checked; no fixture words or derived private key found')
+    print('PRIVATE_BOUNDARY_AUDIT_PASS; '+str(len(files))+' docs/scripts/capture files checked (AVD userdata and sealed SOURCE native captures excluded; sanitized packages included); no fixture phrase or derived private key found')
 
 if __name__=='__main__':
     try:main()

@@ -39,10 +39,10 @@ def app_fixture():
     a['candidates']=[dict(parentWalletId=ids[0],derivationPath="m/44'/309'/2'/0/0",accountIndex=2,scriptArgs='03'*20,state='PENDING',createdAt=123,registeredFromBlock=10)]
     return a
 
-def native_fixture(file,app):
+def native_fixture(file,app,profile=p.FORMAT):
     d=sqlite3.connect(file);d.execute('CREATE TABLE kv(key BLOB PRIMARY KEY,value BLOB)')
     rows=[(b'\xe0GENESIS_BLOCK',bytes.fromhex(GENESIS)),(b'\xe0LAST_STATE',b'\0'*240),(b'\xe0LAST_N_HEADERS',b''),(b'\xe0MAX_CHECK_POINT_INDEX',b'\0'*4),(b'\xe0MIN_FILTERED_NUMBER',(100).to_bytes(8,'little')),(b'\xd0'+b'\0'*4,b'\0'*32)]
-    for i,script in enumerate(p.validate_app(app).values()):
+    for i,script in enumerate(p.validate_app(app,profile=profile).values()):
         rows.append((b'\xe0FILTER_SCRIPTS'+bytes.fromhex(script)+b'\0',(100).to_bytes(8,'big')))
         fake_hash=bytes([i+1])*32
         rows.extend([(b'\0'+fake_hash,b'\0'*12+struct.pack('<I',4)),(b'\x20'+bytes.fromhex(script)+b'\0'*16,fake_hash),(b'\x60'+bytes.fromhex(script)+b'\0'*17,fake_hash)])

@@ -1,0 +1,11 @@
+// Output isolation and ARM64-only test packaging; stable debug signer remains the repository default.
+def out = new File(System.getenv('H02_PHONE_BUILD_ROOT'))
+gradle.beforeProject { p ->
+    p.layout.buildDirectory.set(new File(out, p.path == ':' ? 'root' : p.path.substring(1).replace(':', '/')))
+    p.plugins.withId('com.android.application') {
+        p.extensions.getByName('androidComponents').finalizeDsl { dsl ->
+            dsl.defaultConfig.ndk.abiFilters.clear()
+            dsl.defaultConfig.ndk.abiFilters.add('arm64-v8a')
+        }
+    }
+}

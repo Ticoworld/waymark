@@ -1,9 +1,10 @@
-# Root repository contains experiment documents/configuration/scripts only.
+# Deliberate public source/docs allowlist; local custody remains excluded.
 /*
 !/.gitignore
 !/.gitattributes
 !/docs/
-!/scripts/
+!/tools/
+!/tests/
 !/README.md
 
 # Explicit exclusions, including nested occurrences in allowed directories.

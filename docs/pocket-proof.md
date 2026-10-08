@@ -59,7 +59,7 @@ After that comparison, state-assisted recovery signed a second 61 CKB self-trans
 
 The second transaction's inputs were removed from the common live set and its self outputs added. This exactly explains the later final oracle: account-0 history gains that transaction, spendable capacity falls only by its 1,000-shannon fee, and account-1/DAO history and live state remain identical. Final state-assisted acceptance after signing and cold restart was at **22,655,881**. Comparing different later tips blindly would give a misleading result.
 
-No source security material was imported. Fresh destination creation/protection metadata survived activation, signing and restart. The real-phone result therefore covers actual device authentication/storage/native startup, beyond the emulator signing-readiness result. The final state-assisted installation was retained intact, process stopped and package enabled without launch; presentation cleanup performs no device work.
+No source security material was imported. Fresh destination creation/protection metadata survived activation, signing and restart. The real-phone result therefore covers actual device authentication/storage/native startup, beyond the emulator signing-readiness result. The final state-assisted installation was retained intact, with its process stopped and package enabled without launch.
 
 ## Timing observations, not a benchmark
 
@@ -99,6 +99,6 @@ Android displayed a recurring native-library 16 KB alignment warning. This teste
 
 ## Claim boundary and status
 
-The tested responsibility sits in Pocket's account model, persistence, embedded light client, normal recovery/authentication and signing. D2 was unnecessary for this tested Pocket recovery path and was not used; the proof establishes no separate external recovery-layer requirement.
+The tested responsibility sits in Pocket's account model, persistence, embedded light client, normal recovery/authentication and signing. The proof required no separate external recovery layer.
 
 The result is scoped technical research ready for maintainer evaluation, not production release qualification. Limits include one pinned source/debug version, one disposable testnet fixture, two accounts, one active DAO, one Samsung/API-36 phone, no arbitrary cross-version/backend/wallet compatibility, no extensive reorg/finality study, no hostile-source completeness proof, no large-history/device distribution, and no encryption/cloud/import UX. Further work would require a wallet-owned supported feature and a broader validation plan.

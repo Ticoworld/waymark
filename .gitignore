@@ -6,6 +6,7 @@
 !/tools/
 !/tests/
 !/README.md
+!/LICENSE
 
 # Explicit exclusions, including nested occurrences in allowed directories.
 repos/

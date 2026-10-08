@@ -116,24 +116,30 @@ Amounts are shannons. Distinct header-dependent rewards are not expected to equa
 
 All **11,378** actual records were audited: prefix 0: 9; 32: 4; 96: 16; 160: 8; 192: 8; 208: 11,326; 224: 7. Transactions/indices use fixed u64/u32 big-endian fields and packed CKB structures. Metadata uses explicitly encoded u64 big-endian registrations, U256 little-endian chain work plus packed header, 100 recent u64 little-endian/hash pairs, u32 big-endian checkpoint index and u64 little-endian minimum filtered height. No persisted native pointer/usize/native-endian dump was found. Type-index families and matched-work records were absent in this payload; source defines their explicit encoding. Container format alone was not the compatibility argument.
 
-## Provenance and licensing review
+## Source provenance and license
 
-Review on 2026-10-08 inspected source headers, introduction/change history, pinned Pocket code/schema/native serializers and dictionary bytes. Original Git authorship records document contribution history, not a legal ownership assignment. No repository-wide license or rights holder was authorized, so no `LICENSE` is created. **MIT is recommended for original research contributions once their rights holder approves it.** Until then the repository is publicly readable research with third-party notices, not an explicitly licensed open-source distribution of the research code.
+Original project contributions are distributed under the [MIT License](../LICENSE),
+copyright 2026 Timothy, using the name supported by this repository's authorship
+records. The retained files were checked against their introduction/change
+history, source headers and pinned upstream references on 2026-10-08.
 
-| Retained source/tool/test/data | Classification and requirement |
-| --- | --- |
-| `tools/state_package.py` | Original research implementation, introduced in `45c5088832c63d830fe8acb2d93c7f225a135f89` and extended in `0305fbbf40b3c3f48b6a4e97f0b0e9b91a0698ce`. Pocket schema/format facts and standard address/Script rules are references; no copied Pocket implementation identified. License decision for research code remains pending. |
-| `tools/pocket_sandbox.py` | Original research ADB transport/guards in the same two commits; no copied upstream implementation identified. Pending research license. |
-| `tools/android/PocketStateSandbox.java` | Original standalone research helper in `45c5088...`, evolved in `0305fbb...`; newer DAO-aware variant introduced in `fa42264...`. Uses Android APIs and Pocket schema/format/defaults as references, without copying Pocket classes or linking its implementation. Pending research license; Pocket provenance remains attributed. |
-| `tools/build-state-helper.ps1` | Original research compile/dex wrapper introduced in `45c5088...`; invokes installed JDK/Android tools, distributes no tool binaries. Pending research license. |
-| `tests/test_state_package.py` | Original synthetic validator/mapping/refusal tests introduced in `45c5088...`; generated fixture data/canaries, not a real backup or private fixture. Pending research license. |
-| `tests/test_single_account_profile.py` | Original synthetic profile tests introduced in `0305fbb...`. Pending research license. |
-| `tests/test_android_state_helper.py` | Original synthetic integration driver introduced in `45c5088...`; reads/generated SQL from the separately obtained pinned Pocket Room schema at runtime. That upstream schema is not bundled here and remains under Pocket's MIT notice. Pending license for original driver. |
-| `tools/bip39-english.txt` | **Copied reference data from Pocket**, introduced in `45c5088...`; exact 2,048 words extracted from its `Bip39EnglishWordlist.kt`, byte-identical to upstream BIP39 English list. Pocket MIT notice and BIP39 MIT attribution/permission are preserved in [third-party notices](../tools/THIRD_PARTY_NOTICES.md). SHA-256 `2f5eed53a4727b4bf8880d8f3f199efc90e58503646d9ff8eff3a2ed3b24dbda`. |
+The package validator, sandbox transport, build wrapper and synthetic policy/Android
+tests originated in `45c5088832c63d830fe8acb2d93c7f225a135f89`; the single-account
+profile/test originated in `0305fbbf40b3c3f48b6a4e97f0b0e9b91a0698ce`. The standalone
+Android helper originated in the first commit, evolved in the second, and its
+DAO-aware variant was introduced in `fa42264`. These are original research
+implementations referencing Pocket's schema, formats and defaults; no copied
+Pocket or other upstream implementation was identified. The Android integration
+test reads Pocket's separately obtained Room schema at runtime; generated data
+stays under ignored local runs, and no upstream schema or tool binary is bundled.
 
-No retained implementation was identified as copied/adapted Pocket code or another project's implementation. The dictionary is the retained third-party data exception. Schema-generated integration data remains ephemeral under ignored runs. Whole-line comparison found no substantial verbatim implementation lines against inspected Pocket Android/native sources; this supports the history/header review but is not an ownership certificate.
-
-Pocket is MIT-licensed at its pinned [LICENSE](https://github.com/RaheemJnr/pocket-node/blob/b28979de744798ffb75367b031d4871ec3af1a12/LICENSE). Its vendored native source has an MIT permission notice with unresolved copyright placeholders; no native implementation is redistributed in this cleaned tree. BIP39 itself declares MIT and lists its authors; the dictionary was compared to [bitcoin/bips at `927b6de9915c9262615a6399de51b200f81e5aa4`](https://github.com/bitcoin/bips/blob/927b6de9915c9262615a6399de51b200f81e5aa4/bip-0039/english.txt). Referencing upstream software does not grant a license to this project's original code. Preserve applicable notices if upstream material is later incorporated.
+The copied reference-data exception is `tools/bip39-english.txt`, extracted from
+Pocket's pinned word list and byte-identical to the BIP39 English dictionary:
+SHA-256 `2f5eed53a4727b4bf8880d8f3f199efc90e58503646d9ff8eff3a2ed3b24dbda`.
+Its attribution and applicable MIT notice are retained in
+[third-party notices](../tools/THIRD_PARTY_NOTICES.md). Pocket's pinned
+[license](https://github.com/RaheemJnr/pocket-node/blob/b28979de744798ffb75367b031d4871ec3af1a12/LICENSE)
+is MIT; no Pocket native implementation is redistributed here.
 
 ## Historical identifier mapping
 
@@ -154,6 +160,8 @@ Pocket is MIT-licensed at its pinned [LICENSE](https://github.com/RaheemJnr/pock
 Two immutable legacy wire-format literals remain inside the validator/helper: `h02-p0-v1` (two accounts) and `h02-p0-b1-one-account-v1` (single account). They identify sealed bytes and are not public filenames, class names or CLI profile choices. The scanner also retains rejection of the historical synthetic canary `h02_test_secret`, alongside its renamed canary. Public helper class/package, actions, success/refusal messages, AVD guard, staging/journal paths and test names now use descriptive names. Those naming changes do not alter the saved evidence bytes or expand supported recovery profiles.
 
 Recover any old record with `git show <revision>:<historical-path>`. The report map and complete closure digest index follow. Ignored paths are custody references, not broken links or promised clone contents.
+
+D2 was unnecessary for this tested Pocket recovery path and was not used.
 
 ## Immutable package member bindings
 
@@ -279,10 +287,10 @@ Every historical path below is under `docs/` at closure commit `918efa774622497f
 
 Original tooling is likewise recoverable at that revision under `scripts/`. Retained public tooling comes from the validator, emulator transport, newer `b2r2-helper/H02State.java`, sole build wrapper, dictionary and three corresponding tests. Removed drivers include credential/UI entry, fixed-phone qualification/recovery/signing/oracle/comparison, transaction generation, role orchestration, duplicate variants, storage cleanup and host-specific Pocket build adapters. Public tools have no import dependency on them.
 
-## Presentation cleanup verification
+## Offline verification
 
-The renamed tooling passed all **33 package-policy and six single-account offline tests** with generated data on Python 3.13. The standalone Android helper compiled and dexed on the host; Android integration, wallet experiments, phone tests and transactions were not run. Source/import parsing, local links and pinned Pocket source paths/line anchors passed review. No retained tool imports a removed driver.
+The retained tooling passed all **33 package-policy and six single-account offline tests** with generated data on Python 3.13. The standalone Android helper compiled and dexed on the host; Android integration, wallet experiments, phone tests and transactions were not run. Source/import parsing, local links and pinned Pocket source paths/line anchors passed review. No retained tool imports a removed driver.
 
 The final staged tree received an exact local-private-value scan covering recovery words, derived seed/account keys and known protected credentials in binary/text, hexadecimal, Base64 and UTF-16 forms, plus generic private-key/mnemonic-pattern review. No actual secret match or raw/private tracked artifact was found. The public dictionary and generated rejection canaries are reference/test data. The scanner is a local hygiene check, not a new security certification.
 
-All 29 closure index bindings, all six evidence manifests' members (including historical report/source reconstruction), immutable package/member bindings and upstream notices were verified. The closure commit and original ancestry remain intact. Original reports are recoverable through Git; ignored raw custody and the retained phone installation were not cleaned. Repository-wide licensing remains an explicit PM decision after the provenance review above.
+All 29 closure index bindings, all six evidence manifests' members (including historical report/source reconstruction), immutable package/member bindings and upstream notices were verified. The closure commit and original ancestry remain intact. Original reports are recoverable through Git; ignored raw custody and the retained phone installation were not cleaned. The root MIT license covers original project contributions; the copied dictionary retains its upstream notice.

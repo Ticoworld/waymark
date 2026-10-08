@@ -2,13 +2,11 @@
 
 **End-to-end wallet-state recovery research, implemented and validated on Pocket Node.**
 
-Recovering a wallet seed restores control of the keys, but it does not necessarily restore the useful local state a light-client wallet has already built.
+Recovering a wallet seed restores control of the keys, but it does not necessarily restore the useful local state a light-client wallet has already built. This project tested preserving selected non-secret wallet and light-client state, restoring it **after normal key recovery**, and letting the wallet catch up to the current chain.
 
-This project investigates whether selected non-secret wallet and light-client state can be preserved separately, restored after normal key recovery, and then safely brought forward to the current chain state.
+The first end-to-end implementation passed on a real Android phone using Pocket Node 1.8.5. Baseline recovery and state-assisted recovery converged to the same canonical CKB state, preserved independent destination-device security, and both signed confirmed testnet transactions. The saved state does not replace the recovery phrase: **source-device signing secrets and Android Keystore material are never transferred**.
 
-The first end-to-end implementation was tested with Pocket Node 1.8.5 on a real Android phone. Baseline recovery and state-assisted recovery converged to the same canonical CKB state, preserved independent destination-device security, and both successfully signed confirmed testnet transactions.
-
-## The problem and recovery model
+## How it works
 
 Keys establish signing authority. A working wallet also needs account relationships, historical coverage, account discovery, indexed transactions and live Cells, chain checkpoints, and consistent sync progress. Rebuilding this state can require substantial network and local work.
 
@@ -26,23 +24,23 @@ The research package contains a manifest, selected public account/discovery/prog
 
 The package never transfers a mnemonic, seed, private key, PIN, Android device credential, Android Keystore material, source encrypted key rows, raw wallet backup, or raw source wallet database. Destination signing secrets are created by normal key recovery and remain destination-owned.
 
-## What Pocket proved
+## Pocket Node proof
 
 An initial emulator proof covered one populated account. A richer proof covered two populated accounts with distinct Scripts, an active DAO deposit, and activity after the saved-state checkpoint. The real Samsung phone proof restored that same unchanged package from x86 to ARM, caught up correctly, signed confirmed transactions through Pocket and genuine Android authentication, and passed cold restart.
 
 The two phone recovery paths matched exact live Cells, balances, covered history, account ownership and canonical DAO position at one common comparison checkpoint. A later state-assisted signing transaction was accounted for explicitly. The observed timings show work avoided in these runs; they are **not a benchmark or a universal speed result**.
 
-## Security boundary and limitations
+## Security model
 
 This is a trusted-self snapshot: integrity checks bind it to a separately trusted digest, but do not independently prove that the source scanned all historical activity. Non-secret account associations still reveal financial privacy. The harness has no encrypted backup or cloud protocol.
 
-The proof covers one pinned Pocket version, a disposable testnet fixture, one Samsung/API-36 phone, and an active DAO deposit. Cross-version migration, other wallets, hostile-source snapshots, extensive reorg testing, and mature DAO withdrawal/unlock were not demonstrated. A pre-existing DAO reward-estimate defect and a separate 16 KB native packaging warning are documented in the proof.
+## Repository contents and evaluation
 
-## Status and evaluation
-
-The scoped technical research is complete. This is reference instrumentation and maintainer evidence, **not a finished production wallet feature**. Pocket Node is the proven implementation and testbed. No compatibility with other wallets or ecosystem-standard status is claimed. The tested Pocket recovery path required no separate external recovery layer.
-
-Wallet maintainers can evaluate the idea by identifying their own secret/state boundary, selecting coherent state and compatibility gates, then comparing normal recovery with state-assisted recovery using their own disposable fixture. The [recovery model and tooling guide](docs/how-it-works.md) explains the requirements and what would need integration in a wallet.
+- [How it works](docs/how-it-works.md): package, trust boundary, compatibility checks, destination reconstruction and tooling prerequisites.
+- [Pocket proof](docs/pocket-proof.md): recovery, signing, restart, equivalence, timings and separate upstream observations.
+- [Evidence](docs/evidence.md): exact source pins, artifact and transaction hashes, digest bindings and historical traceability.
+- `tools/`: the strict package validator, emulator sandbox transport, standalone Android helper and its build wrapper, plus the BIP39 reference dictionary.
+- `tests/`: generated policy fixtures and an optional Android integration driver.
 
 To run the retained offline synthetic policy tests from the repository root with Python 3.13 (the validated version):
 
@@ -51,11 +49,16 @@ python -m unittest discover -s tests -p "test_state_package.py" -v
 python -m unittest discover -s tests -p "test_single_account_profile.py" -v
 ```
 
-These tests use generated data and require no wallet, device, network or private fixture. The optional Android integration test has separate prerequisites; it is not part of these commands. There is no general end-user recovery CLI or clean-clone replay of the historical phone experiment.
+These commands need no wallet, device, network or private fixture. Inspect the existing tools with `python tools/state_package.py --help` and `python tools/pocket_sandbox.py --help`. Android compilation and optional integration have separate prerequisites in [the tooling guide](docs/how-it-works.md). There is no general end-user recovery CLI or clean-clone replay of the historical phone experiment.
 
-- [How recovery works](docs/how-it-works.md): package, trust, compatibility, reconstruction and retained tools.
-- [Pocket proof](docs/pocket-proof.md): experiments, signing, equivalence, timings and limitations.
-- [Evidence and provenance](docs/evidence.md): exact pins, digest bindings, historical records and licensing review.
-- [Third-party notices](tools/THIRD_PARTY_NOTICES.md): dictionary attribution and upstream license notices.
+Wallet maintainers can evaluate the idea by identifying their own secret/state boundary and compatibility gates, then comparing normal and state-assisted recovery with a disposable fixture, later chain activity, exact canonical state, signing and restart.
 
-No repository-wide license has been selected. The provenance review recommends MIT for the original research contributions, subject to the rights holder's approval; third-party notices do not license those contributions.
+## Status and limitations
+
+The scoped technical research is complete. Pocket Node is the proven implementation and testbed; this is reference instrumentation and maintainer evidence, **not a finished production wallet feature**. No compatibility with other wallets or ecosystem-standard status is claimed. The tested Pocket path required no separate external recovery layer.
+
+The proof covers one pinned version, a disposable testnet fixture, two accounts, one Samsung/API-36 phone, and an active DAO deposit. Cross-version migration, other wallets, hostile-source snapshots, extensive reorg testing, and mature DAO withdrawal/unlock were not demonstrated. The proof documents a pre-existing DAO reward-estimate defect and a separate 16 KB native packaging warning.
+
+## License
+
+Original project contributions are licensed under the [MIT License](LICENSE), copyright 2026 Timothy. The copied BIP39 dictionary retains its required attribution and upstream MIT notice in [third-party notices](tools/THIRD_PARTY_NOTICES.md).

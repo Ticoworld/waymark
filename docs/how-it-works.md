@@ -1,6 +1,6 @@
 # How wallet-state recovery works
 
-Key recovery and state recovery have different responsibilities. Normal wallet recovery restores signing authority and creates destination security. State-assisted recovery then restores selected prior scanning work and continues reconciliation with the chain. Pocket Node 1.8.5 is the implementation validated here; another wallet needs its own state model, importer and evidence.
+Waymark separates key recovery from state recovery. Normal wallet recovery restores signing authority and creates destination security. State-assisted recovery then restores selected prior scanning work and continues reconciliation with the chain. Pocket Node 1.8.5 is the implementation validated here; another wallet needs its own state model, importer and evidence.
 
 ## A coherent saved-state checkpoint
 

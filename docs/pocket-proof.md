@@ -2,7 +2,7 @@
 
 **Baseline and state-assisted recovery reached identical canonical wallet state. Both real-phone recovery paths signed confirmed testnet transactions and passed cold restart with independent destination security.**
 
-Pocket Node 1.8.5/code 27 was tested at one pinned source commit with its embedded light client. Production Pocket source stayed unchanged; the importer/exporter was external debug-sandbox instrumentation. Exact provenance, public transactions and sealed digest bindings are in [evidence](evidence.md). The [mechanism](how-it-works.md) describes the state/secret boundary.
+Waymark's recovery model was tested on Pocket Node 1.8.5/code 27 at one pinned source commit with its embedded light client. Production Pocket source stayed unchanged; the importer/exporter was external debug-sandbox instrumentation. Exact provenance, public transactions and sealed digest bindings are in [evidence](evidence.md). The [mechanism](how-it-works.md) describes the state/secret boundary.
 
 ## Method and source-loss boundary
 

@@ -1,10 +1,12 @@
-# CKB Wallet State Recovery
+# Waymark
 
-**End-to-end wallet-state recovery research, implemented and validated on Pocket Node.**
+**Wallet-state recovery for CKB, first validated on Pocket Node.**
 
-Recovering a wallet seed restores control of the keys, but it does not necessarily restore the useful local state a light-client wallet has already built. This project tested preserving selected non-secret wallet and light-client state, restoring it **after normal key recovery**, and letting the wallet catch up to the current chain.
+Recovering a wallet seed restores control of the keys, but it does not restore all of the useful local state a light-client wallet may have already built.
 
-The first end-to-end implementation passed on a real Android phone using Pocket Node 1.8.5. Baseline recovery and state-assisted recovery converged to the same canonical CKB state, preserved independent destination-device security, and both signed confirmed testnet transactions. The saved state does not replace the recovery phrase: **source-device signing secrets and Android Keystore material are never transferred**.
+Waymark explores a simple recovery model: restore ownership normally, restore selected non-secret wallet/light-client state separately, then let the wallet catch up to the current chain. A waymark is a known point on a journey; here, it is the saved historical checkpoint from which the wallet continues.
+
+The approach was validated end-to-end on Pocket Node 1.8.5 on a real Android phone. Baseline recovery and state-assisted recovery converged to the same canonical CKB state, preserved independent destination-device security, and both signed confirmed testnet transactions. The saved state does not replace the recovery phrase: **source-device signing secrets and Android Keystore material are never transferred**.
 
 ## How it works
 
@@ -55,7 +57,7 @@ Wallet maintainers can evaluate the idea by identifying their own secret/state b
 
 ## Status and limitations
 
-The scoped technical research is complete. Pocket Node is the proven implementation and testbed; this is reference instrumentation and maintainer evidence, **not a finished production wallet feature**. No compatibility with other wallets or ecosystem-standard status is claimed. The tested Pocket path required no separate external recovery layer.
+Waymark's scoped technical research is complete. Pocket Node is the proven implementation and testbed; this is reference instrumentation and maintainer evidence, **not a finished production wallet feature**. Neuron, iBytes and other CKB wallets have not been validated. No compatibility with other wallets or ecosystem-standard status is claimed. The tested Pocket path required no separate external recovery layer.
 
 The proof covers one pinned version, a disposable testnet fixture, two accounts, one Samsung/API-36 phone, and an active DAO deposit. Cross-version migration, other wallets, hostile-source snapshots, extensive reorg testing, and mature DAO withdrawal/unlock were not demonstrated. The proof documents a pre-existing DAO reward-estimate defect and a separate 16 KB native packaging warning.
 

@@ -1,0 +1,54 @@
+{
+  "format": "waymark-public-evidence-v1",
+  "paths_relative_to": "repository root",
+  "hash_algorithm": "SHA-256",
+  "text_line_endings": "LF; compare against Git stored bytes if checkout changes line endings",
+  "scope": "This publication; the manifest does not hash itself.",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 6493,
+      "sha256": "c078583a4778787f83bdc28884327a28f35628acd576024b98fc18d779779a0d"
+    },
+    {
+      "path": "docs/lite-full-recovery/README.md",
+      "bytes": 19105,
+      "sha256": "e9aa06524dd02571a0ef43cdebead196d2ff4166225f0e1a90e8d3d80cf98ff8"
+    },
+    {
+      "path": "docs/lite-full-recovery/arm-summary.csv",
+      "bytes": 1758,
+      "sha256": "3ebc0efb18e9d45d7325ae8b551c53d86d13339619f597507beed3e6f69547b8"
+    },
+    {
+      "path": "docs/lite-full-recovery/b-timeline.csv",
+      "bytes": 8671,
+      "sha256": "1a9907b2c3e0473843b8f6d6a4b1094ae341ff9c978cebf8eafa343e2b6a631c"
+    },
+    {
+      "path": "docs/lite-full-recovery/b-registrations.csv",
+      "bytes": 5913,
+      "sha256": "f65c49343d36bf42e81e5a275401a07cd79247ba8a9b4e5d0a9177b6d6cd8a13"
+    },
+    {
+      "path": "docs/lite-full-recovery/progress-observations.csv",
+      "bytes": 31076,
+      "sha256": "69b920ddd3cabcfc4163b6b27f624323224385634748bcf401a37dad69a921d2"
+    },
+    {
+      "path": "docs/lite-full-recovery/discovery-coverage.csv",
+      "bytes": 3789,
+      "sha256": "c62baea028c2e30fabe306655383304c69159d5032416ca69eb6150920c96770"
+    },
+    {
+      "path": "docs/lite-full-recovery/source-index.csv",
+      "bytes": 10915,
+      "sha256": "60fa7fad644129a595a6e93a8ebf031cfbf95aa0266f6686d7312c3c5f2f19b3"
+    },
+    {
+      "path": "docs/lite-full-recovery/verification.json",
+      "bytes": 1317,
+      "sha256": "8e94d15fd10e3817a0fe07b61a86363232254e2b80ad8f40ff91ac0a41b3129c"
+    }
+  ]
+}

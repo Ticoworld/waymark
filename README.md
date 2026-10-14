@@ -41,6 +41,7 @@ This is a trusted-self snapshot: integrity checks bind it to a separately truste
 - [How it works](docs/how-it-works.md): package, trust boundary, compatibility checks, destination reconstruction and tooling prerequisites.
 - [Pocket proof](docs/pocket-proof.md): recovery, signing, restart, equivalence, timings and separate upstream observations.
 - [Evidence](docs/evidence.md): exact source pins, artifact and transaction hashes, digest bindings and historical traceability.
+- [Lite and Full recovery timings](docs/lite-full-recovery/README.md): the October 14 follow-up, empty-account discovery checks, sanitized data and limits.
 - `tools/`: the strict package validator, emulator sandbox transport, standalone Android helper and its build wrapper, plus the BIP39 reference dictionary.
 - `tests/`: generated policy fixtures and an optional Android integration driver.
 

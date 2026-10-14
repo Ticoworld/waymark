@@ -1,0 +1,61 @@
+local_relative_path,bytes,sha256,included_raw,role
+docs/lite-full-attribution.md,12790,8936282314ff53dc5595d78f9bbacc82daa0256246a446bcff721c77353c330c,no,Original local evidence; raw file excluded
+repos/pocket-node/android/app/src/main/java/com/rjnr/pocketnode/data/database/entity/SubAccountCandidateEntity.kt,2315,6a22cea58b117bdd4dc765ea2808d3e0311250cb533865e2a74a1be51dd54d07,no,Source code used to read the records
+repos/pocket-node/android/app/src/main/java/com/rjnr/pocketnode/data/gateway/GatewayRepository.kt,178855,0ccc5c1d75c07a61068e7b5816f5c709779f07e4e51d9487fe7d69ae5a257b9d,no,Source code used to read the records
+repos/pocket-node/android/app/src/main/java/com/rjnr/pocketnode/data/gateway/SyncCoordinator.kt,37363,7b8f49d99bc2f79dae41c09bd306f3740e6eaaa39b1970018da1da4d8e86acb7,no,Source code used to read the records
+repos/pocket-node/android/app/src/main/java/com/rjnr/pocketnode/data/wallet/SubAccountDiscovery.kt,5103,6a7d7c9fd28ca8d27a83018b4fac92e67db772dc2bb401aa3364a834e6ad913e,no,Source code used to read the records
+repos/pocket-node/android/app/src/main/java/com/rjnr/pocketnode/data/wallet/SubAccountReconciler.kt,4831,71735daaa49addaf467d6850da542a79dc2452c699204230da191a60145d34f4,no,Source code used to read the records
+repos/pocket-node/android/app/src/main/java/com/rjnr/pocketnode/di/AppModule.kt,13750,29de865a1174d07c6df4d1780975e1010d06a813790af7bfe1290066ace1a52c,no,Source code used to read the records
+repos/pocket-node/external/ckb-light-client/light-client-lib/src/storage/db/native.rs,50525,2ada512f70a6ff486893cf9155a98bf8c76e6c4b173b67ae6e4312b4b92128ec,no,Source code used to read the records
+runs/lite-full-attribution/audit.json,65307,0782a9160902b00f9be45ec8b8dea1061970e42324bb0ca9cb68e7d4d66aed58,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/experiment.py,19578,1805c0a9ad2740d83dc8f8e7b24d725846202dc4a30ff3c8d9f0e62892eab8cd,no,Source code used to read the records
+runs/lite-full-attribution/final-evidence-manifest.json,45409,0b8c327fe5f4089e228dae821748efc8bf3e21f370e8161e8317f403304495f4,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/manual-stage-observations.json,367,6ac6ea5b1dc68d1cd410aede910a447755ce325ad7772c85ca41c6881c38edf3,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/measurement-summary.json,62243,53b45425f094aa1c8bcfe5e1e4084a5aef03e4399c2136bff935b015ba1d2963,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/measurement/B/equivalent-acceptance.json,3757,3fc3f18a5140229c8690a0e5eb097d46ef73fd6cd18bed285ef0aa89346492e8,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/measurement/B/equivalent/app.json,14528,4b7287d4d89f1f07bdc8263ccfd6791a1ee61d8af4abe6ab09453126659a8d54,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/measurement/B/equivalent/summary.json,10870,6f3752a2c7f0cbbc6c9ed19e33814887516493cc075d445449be934b7076b986,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/measurement/B/events.jsonl,4416,f74c8c234982aa882f52497dd1a6b1520c83db0cf61b66b4588d4fa3a6f4d5ec,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/measurement/B/evidence-manifest.json,5494,16f2e0c78d17814b774d988cec637c0b265eabc4dc368d10f7596613b3bdcebb,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/measurement/B/lifecycle-1791961462224753700.json,262,b7fc32c2f56809e6b4bcef3ec73744076e7a909e6c62f7fbaa07b9b85fb13f6e,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/measurement/B/lifecycle-1791961672494463100.json,35627,c6e7da89ffa80caa66c0d7687e72bb50b658764a02a5c5092c2fb8c66620421b,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/measurement/B/lifecycle-1791962273205112600.json,272,433725a8aa2beccf9e0722eba6d4ea493adb897df2214d18b9f210d262ee9286,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/measurement/B/lifecycle-1791962311496587400.json,1396,08289b778401f5096c6afd6b69878b8c299a680a389a14f26a64d65141ed67df,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/measurement/B/lifecycle-1791963280785371500.json,271,57f18ffc19d6196f9dcc8e5306839c5600fbd75b594b31148f77f6fa3afd78cc,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/measurement/B/lifecycle-1791963440326457500.json,803,6e3c3f789a696c95c9f18dd5e7969b6510defaa184686e5ca4bbcb00275bd9e3,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/measurement/B/progress.jsonl,233920,898f89dba5f56eab8f9c0b1e0d86cefd8d1c21a87c59f01546215d194a083325,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/measurement/B/restart-acceptance.json,3757,db1abeda6c733edda3a83c654f554db0660299acee37091a31e7ffc633e5e50d,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/measurement/B/restart/summary.json,10870,236bbced9e92d0c45f8e52812a58f8dbaed03d5cee5c9bb8b2b949dd53d5b8f4,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/measurement/B/result.json,760,53e6cfc05afcca1753d1bcc9047a4818a17ec23cb12363300767e552241aa9c0,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/measurement/C/equivalent-acceptance.json,3757,90e57b9bc01adc590f7f464c49d98f3aefc853ed1c6c8cdd32add64fd3e3eb5d,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/measurement/C/equivalent/app.json,14528,ec6f8feb7307c31972caea2fe2bddae424b8b0d05c3db1e120ca332e2b663439,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/measurement/C/equivalent/summary.json,10870,8f626957166b0e1d824f9ab68f65993ac4c65bd08e9de94c4cfa68f83577c22a,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/measurement/C/events.jsonl,3975,a1b3aad86738decb9a16f7c89d70b76141e417db02c8aaf28d45603eb12c0e1f,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/measurement/C/evidence-manifest.json,5451,ac84acb9dde519f1d852e8f54f1a7621c249058aaad035f18513ae91353bb6d2,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/measurement/C/lifecycle-1791963823015640600.json,35716,1be2b2c980aa4cabdfb0ee34f1573629dc15c1ff9ff873ca137adf9942f76dba,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/measurement/C/lifecycle-1791963873648110200.json,808,e6c99c481d6e86352c7e85faa832282fd45dc9a39832562966f012a7f1b7ce10,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/measurement/C/lifecycle-1791964173771616600.json,807,8c619c3727107d81be52d7c5e1d9c8496a8541fa6435fb4d8616041a2ac9123e,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/measurement/C/progress.jsonl,39034,8a37a5c3d95012a59aec5bc692d55ff5246002fde60594a67eef6d1b66e28b1d,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/measurement/C/restart-acceptance.json,3757,3ef80b4a0f385a8396692a636e050250146213b4e1d471986f4df56111c9157f,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/measurement/C/restart/summary.json,10870,dba19fc2f4b1cf36d41a0621046b1c49142cdd3613c9b3be3d5e1f0ed69171e5,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/measurement/C/result.json,757,4c578760dc755276c54fab0c81ec49ca0911dbf5f38ced8f765981f06086a7cb,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/measurement/D/equivalent-acceptance.json,3757,9fe465c03c8d0d9158e8980c10e5868b69042f466ae20f699cb237fb3c933473,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/measurement/D/equivalent/app.json,14522,6ab50d4f54d88ae5b5e3d733da9f380b132e162e52b8885c83532630ed2fc9e4,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/measurement/D/equivalent/summary.json,10871,c14d37a818829dc2f2c17fd6c6b0da61941180dc35d98446226574dbaf6789d6,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/measurement/D/events.jsonl,4578,20b59fe370e74d8c1bd56ead25bc6223954be2909c6335603256b320cf579c6a,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/measurement/D/evidence-manifest.json,6139,5554bf2255d10f0b1fb1226e43571812028b3782ceae384aa0c6f16e37f9afa2,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/measurement/D/lifecycle-1791964937027851400.json,35682,70dd1ecf2ecc1d30d8581a7f8213bd81d1396d494c77ae03b200b134e8b5be2a,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/measurement/D/lifecycle-1791964988031686400.json,7570,8f4aa23ce1881363ccde21745c01f2ea4ea6bbabaa941d6e7d61cb7c7a030ec8,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/measurement/D/lifecycle-1791965854754154100.json,7570,17fa7329a2c3740b87fd8b7cedc176a29e278d21071c1526616b12ee43a0bf7a,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/measurement/D/lifecycle-1791965892079371000.json,1396,85bd4a54ea666348875e1234e050f4812a805010b0a7601021dceacb0c8ccdb2,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/measurement/D/lifecycle-1791966931656473100.json,272,d7678202cb4743fb4c3eb2ea99096fb7a93ed17f5a0b9418e02b17084ac727a6,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/measurement/D/progress.jsonl,239505,0b0d71ea2ccf535e6cc8006806efe469bfd0dce8fd111f236b67485aabca7b20,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/measurement/D/restart-acceptance.json,3757,c196bf0675aea620c5c73aea84c9e49f81942ef2acb6e1612c119bfdcc934a19,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/measurement/D/restart/summary.json,10871,72cf162469ee4f08a54137f141cd9d0fe20034a1eb89ebac0125aeebfd5bf0f4,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/measurement/D/result.json,759,e5373d0c4d72c4cd6ca22f124e9d26eb4865240cc186a4ace2d3be4d7e18a3a2,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/measurement/oracle-target.json,34531,605e904513c690e819ab5b57facef33ba626f65b19ea50de20cc841ea0300e53,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/measurement/target.json,198,38a68d3ea325956e952adae63eaeeb3dc637a8f714e84b98b2cd763f4cb4db6e,no,Original local evidence; raw file excluded
+runs/lite-full-attribution/summarize.py,6621,e8ea3db02c25b3b78b5a2da20ebca6d7e4011ee047408a43fb5544776fdc2bae,no,Source code used to read the records
+runs/wo3b2/package-H2-immutable/app.json,14528,83c3651595d9528e6dc6ea02e8eb744f2d0b7cc5dc408d4025f24c297e5b3890,no,Original local evidence; raw file excluded
+runs/wo3b2/package-H2-immutable/manifest.json,1933,56d4a6506641c62797531eb0f093c4930131a9046d26351377c292568d7d879e,no,Original local evidence; raw file excluded
+runs/wo3b2/package-H2-immutable/native.sqlite,1888256,8a027384037de94cd7bad5903b563b8dc593452fe89be35814c17993dd747dc1,no,Original local evidence; raw file excluded

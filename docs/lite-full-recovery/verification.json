@@ -1,0 +1,27 @@
+{
+  "research_date": "2026-10-14",
+  "scope": "Publication checks only. No new recovery, device operation, transaction or production change.",
+  "original_sealed_files_rechecked": 240,
+  "original_seal_sha256": "0b8c327fe5f4089e228dae821748efc8bf3e21f370e8161e8317f403304495f4",
+  "original_sealed_report_unchanged": true,
+  "arm_manifest_members_rechecked": {
+    "B": 33,
+    "C": 33,
+    "D": 37
+  },
+  "saved_package_payload_hashes": "PASS",
+  "chain_reference_hash": "PASS",
+  "six_wallet_state_and_restart_acceptances": "PASS",
+  "common_wallet_state_sha256": "f78ce47bf5bf353093ec23d621105d4462afc422e4a95d7e4b0768c3ab41d836",
+  "pocket_source_pinned_and_unchanged": true,
+  "public_measurement_values_equal_prepared_csvs": true,
+  "public_progress_observations": 144,
+  "security_review": {
+    "exact_fixture_phrase_seed_and_account_private_keys_in_common_encodings": "PASS",
+    "wallet_identifiers_addresses_script_arguments_and_host_path_checks": "PASS",
+    "credential_patterns_and_bip39_word_sequences": "PASS",
+    "manual_review_of_public_text_csv_fields_and_commit_allowlist": "PASS",
+    "raw_logs_databases_security_material_private_fixtures_included": false
+  },
+  "limitations": "These are checks against retained evidence, not independent reproduction or proof that all history was scanned."
+}

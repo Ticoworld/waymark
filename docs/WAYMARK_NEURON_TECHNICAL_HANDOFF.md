@@ -1,96 +1,63 @@
-# Waymark Neuron Technical Handoff
+# Waymark: Reusing Synchronized Wallet State in Neuron
 
-Date: 2 November 2026
+Updated: 3 November 2026
 
-## Purpose
+Waymark explores whether a wallet can recover its keys normally while reusing blockchain synchronization data from a previous installation. The Neuron experiment demonstrated that its existing processing pipeline can rebuild one owned TESTNET receive from a copied Light Client store, provided application synchronization records are initialized before that store is attached. This is an experimental mechanism, with full recovery, safety, and performance still to establish.
 
-This handoff summarizes the completed Waymark recovery research through WO07-R12 for a future technical review with Neuron maintainers. It is not a request to merge an implementation. No upstream contact or publication has occurred.
+## Foundation: Pocket Node
 
-## Recovery problem
+Waymark was first validated with Pocket Node on Android. After normal key/account recovery and fresh destination security, a selected non-secret state package restored prior synchronization and discovery information. Baseline and state-assisted destinations matched checked history, live Cells, balances, account ownership, and an active DAO position. Both real-phone paths signed confirmed TESTNET transactions and passed cold restart; source signing secrets and Android Keystore material were not transferred.
 
-Neuron mnemonic recovery restores wallet ownership and derives addresses, then uses a user-selected Light Client start height and normal Script scanning to reconstruct application history. A transferred Script checkpoint alone is unsafe: an empty destination application database does not contain the transactions, inputs, outputs, Cell relationships, and DAO references represented by that checkpoint.
+Pocket Lite supplies restore hints while Full carries more saved state. A later comparison found the combined Full package faster on the tested fixture, but it also restored settled discovery metadata. Native-state reuse alone did not isolate the same benefit. Those single-run observations are not a general benchmark or evidence of Neuron acceleration.
 
-The research asks whether a destination can reuse previously completed Light Client Script discovery, then feed its historical results through Neuron's existing transaction cache, queue, and persistor. The intended benefit would be less destination-side filtering and shorter recovery while preserving ordinary Neuron ownership, chain validation, and app reconstruction.
+## Neuron's startup limitation
 
-## Pocket Node results and limits
+The target was Neuron v0.204.1 with CKB Light Client v0.5.4. Neuron keeps application transaction records and `SyncProgress` separately from the Light Client's RocksDB indexes and Script cursors. Moving only a checkpoint cannot reconstruct the missing application records.
 
-The original Pocket comparison reported about 30 minutes between its Normal and Full arms, but Normal already used the same historical floors and recovered both known accounts. Full restored native state plus settled discovery/progress metadata; transaction, balance, header, and DAO caches were rebuilt in both arms. The original difference cannot be attributed to Lite or to native-state reuse alone.
+We observed that attaching an indexed native store before matching application progress exists can repeat historical filtering. Neuron's actual `LightSynchronizer.initSyncProgress()` sent partial `set_scripts` registrations for 90 wallet Scripts, resetting the owned Script cursor to the configured start height. The historical index remained queryable, but the completed filtering work was scanned again.
 
-A later controlled TESTNET comparison had all three arms pass exact-state acceptance and cold restart. The Lite-equivalent fresh-native arm took 35m23.6s to exact capture; the Full package arm took 10m52.6s, an observed 24m31.0s total difference. However, Full also restored completed discovery metadata. A diagnostic native-reuse arm with fresh discovery took 43m03.7s overall and about 34 minutes from registration to exact state, with discovery passes still required. The experiment points to settled discovery as a major source of the Full arm's benefit; it did not isolate native-store-only savings.
+## Tested two-phase initialization
 
-These were single, sequential, fixture-specific runs with changing peers/tips and manual capture delays. Height spans are not work counts. Results do not establish representative recovery performance or generalize from Pocket to Neuron. See [Lite/full attribution](lite-full-attribution.md) and the retained [Pocket evidence](evidence.md).
+The successful sequence was:
 
-## Neuron findings: R9-R12
+1. Use Neuron's existing wallet/address identity and initializer to create legitimate `SyncProgress` records at the safe starting floor.
+2. Stop the relevant workers and attach a verified copy of the previously synchronized native store.
+3. Restart initialization, then replay indexed results through Neuron's normal transaction cache, Queue, and `TransactionPersistor`.
 
-Target versions were Neuron v0.204.1 and its bundled CKB Light Client v0.5.4. The examined Neuron source pin is `a926e3383d3a3e305b3bde7d233474515ef01a2e`; the Light Client source pin is `778590aa3ad7f71ee80b2d4c54af02c42e2dfa25`.
+With the progress records present, initialization issued empty registration/deletion calls and preserved the transferred cursor. Neuron found the confirmed receive, durably cached it under the real wallet UUID, and persisted its transaction and live owned output. Repeating discovery left one cache row. Application records matched after SQLite close/reopen, and the Light Client retained its cursor and transaction after a cold process restart.
 
-- **R9, ordinary sync:** A genuine disposable Neuron TESTNET wallet owned one confirmed receive. Neuron's actual `LightSynchronizer` found it, cached it under the real wallet UUID before advancing discovery progress, and its Queue/persistor saved the transaction and live output. This was ordinary scan from H-1, not transferred-state recovery.
-- **R10, native copy:** A quiescent full v0.5.4 RocksDB store copy preserved the Script registration, cursor, and transaction query across another process and restart. It inherited chain state from the source and did not prove app recovery or independent authority. The reports record inconsistent store byte totals, so the approximately 2 MB footprint is not a precise benchmark.
-- **R11, application recovery:** A disposable clone retained genuine wallet/address identity but had its transaction/cache/progress rows reset. Neuron's actual initializer, grouped RPC, cache, Queue, and persistor rebuilt one known receive from a full native-store copy. The app progress rows were initialized before attaching the store. The known transaction/output/cache survived SQLite reopen; the native client survived cold restart. This was simulated clean app state, not mnemonic restore, selective D2 import, or complete wallet recovery.
-- **R12, pending cache:** A disposable state reconstructed from the genuine R11 cache row, with app transaction/output rows absent and the cache unprocessed, was reopened in a new Node process. Neuron's packaged synchronization loop and Queue resumed the row, fetched the real transaction, persisted one output, marked the cache processed, and matched after database reopen. This was a constructed interruption state, not process termination at the original write boundary.
+This ran headlessly using Neuron's packaged backend. The destination retained a copied disposable wallet identity and address metadata, with completed transaction/cache/progress rows removed before the test. It therefore simulated missing application state rather than demonstrating a fresh mnemonic restore. The native transfer was a full RocksDB store copy, not selective D2 import.
 
-The older D2 line also produced useful integration evidence: an exact-Script artifact imported into a v0.5.4 RocksDB store and was returned by the ordinary RPC; proof-backed `fetch_header` filled the historical header mappings; Neuron's actual Queue/persistor processed eight real TESTNET transactions from the Pocket fixture. That Script had no established Neuron wallet ownership. It is pipeline compatibility evidence, not wallet recovery. The v0.5.4 D2 adapter remains destination-import-only.
+A separate restart test constructed a pending-cache state from the existing real cache row. In a new Node process, Neuron resumed it, persisted the receive, and marked the cache processed. This tested pending-work resume, not a process kill at the original write boundary.
 
-## Two-phase initialization and cursor behavior
+## Correctness and claim boundaries
 
-Neuron's `LightSynchronizer.synchronize()` awaits transaction-cache insertion before updating per-Script `SyncProgress.syncedBlockNumber`. The Queue persists transaction/input/output state, handles address generation, and only then marks cache rows processed. `localSavedBlockNumber` therefore trails discovery progress and must not be set equal to the native cursor as a shortcut.
+Neuron caches discovered hashes before advancing `syncedBlockNumber`; persistence and address processing precede cache completion and local-save advancement. `localSavedBlockNumber` must not be equated with the native cursor or treated as interchangeable with discovery progress.
 
-R11 tested both startup orders. If the transferred native store was attached while the app had no matching progress rows, Neuron sent partial `set_scripts` registrations for 90 Scripts, resetting the owned Script cursor to its wallet start height and repeating historical filtering. When Neuron first created the legitimate progress rows through its normal initializer, then the quiescent native store was attached, the next initializer issued empty Script registration/deletion calls and preserved the transferred cursor. Neuron then queried the imported range and reconstructed the transaction through its existing path.
+The tests do not establish complete mnemonic restoration, wallet-owned spending recovery, full history/balance or DAO correctness, reorg safety, cross-version portability, or comprehensive crash safety. The receive-only fixture has no recoverable signing credentials. Installation rollback and a crash between transaction persistence and cache completion remain untested.
 
-The demonstrated order is therefore: establish wallet/address identity and real app progress; stop both workers; stage, verify, and attach a compatible native store; restart Neuron; replay results through its cache and queue; wait for persistence and validation before reporting recovery ready. R11/R12 did not implement a durable coordinator, atomic install/rollback, phase journal, or full crash matrix. A stale native cursor below the app checkpoint caused Neuron to lower discovery progress in an excluded diagnostic run, so mismatched snapshots must be rejected or explicitly fall back to ordinary scanning.
+The copied store inherits source chain state and includes other registered Scripts and privacy-sensitive activity. Hash checks detect transfer corruption, not source completeness. A valid chain anchor does not prove that no matching transaction was omitted.
 
-## What full-store copying accomplishes
+No matched recovery benchmark exists. Avoiding the observed cursor reset does not establish a total recovery-time advantage. A complete cold backup would retain both application and native state; that alternative was not tested. Neuron's inspected wallet-backup controller exports a keystore, not those complete databases.
 
-For the tested one-Script case, copying the complete v0.5.4 native store carried prior Script-filter results and the cursor. With Neuron's matching progress rows present, the app queried those results and rebuilt its own history through the normal persistence pipeline. No Neuron application database or signing key was transferred by the recovery step.
+## Feedback for Eval Exec
 
-This does not validate all copied historical chain state independently, prove that the source omitted no Script matches, or cover reorgs. A file hash detects transfer corruption, not source honesty or completeness. A full store also includes other registered Scripts, chain/header data, global cursors, and privacy-sensitive activity. Cross-version portability, representative size, and multi-wallet behavior remain untested.
+We would value your guidance on three points:
 
-## Difference from a cold backup
+1. Does initializing `SyncProgress` before attaching native state fit Neuron's intended lifecycle? Is there a better supported pause/resume or migration boundary?
+2. What consistency, version, canonical-chain, and crash-recovery checks would be required to reuse a transferred store safely?
+3. Is this useful for a real Neuron recovery case, or does the recommended restore/backup workflow already address it? What benefit would justify comparison with ordinary restore and a complete cold backup?
 
-Neuron's wallet-backup UI exports the encrypted keystore JSON; it is not a complete backup of application and Light Client databases. A complete cold backup would need a quiescent, version-compatible copy of both the Neuron profile/application state and native Light Client data, with consistent shutdown and restore behavior. This complete profile-copy procedure was not tested.
+If the use case is worthwhile, the next useful comparison is those three approaches with a recoverable wallet containing separated receives and an owned spend, at the same canonical tip. It must include preparation, transfer, filtering, reconstruction, catch-up, validation, and restart costs.
 
-Waymark's tested path instead relies on ordinary wallet recovery to establish ownership, transfers only Light Client native state, and asks Neuron to rebuild application state. It can avoid copying Neuron's app database, but it still transports broad native chain and Script data. The experiments did not show that this is smaller, safer, faster, or easier than a complete cold backup.
+## Evidence and implementation references
 
-## Trust, privacy, and safety limits
+The original reports and harnesses retain detailed observations, commands, limitations, and public TESTNET identifiers:
 
-- The recovery source is trusted to provide complete Script results. An artifact digest or matching chain anchor does not prove no matching transactions were omitted.
-- The R8 wallet was receive-only; its signing credentials are unavailable. No wallet-owned spend or spend recovery was tested.
-- The R11 fixture contains one receive near its selected start height. Complete history, general balance reconstruction, DAO recovery, and broad Cell-spend correctness are unproven.
-- R12 resumed a pending-cache state, but did not inject process kills during native installation, cache writes, persistor commits, or processed-marker updates. Duplicate persistence after a crash between database commit and cache completion remains untested.
-- Cursor preservation depends on initialization order and matching wallet Script/progress records. A production path needs an exclusive worker barrier, durable phase marker, atomic staged install/rollback, consistency checks, pending-cache drain, and ordinary-scan fallback.
-- No matched Neuron recovery benchmark exists. Historical filtering reuse was observed for the tested Script range; CPU, network, total elapsed savings, and benefit over cold backup were not measured.
+- Pocket: [phone recovery/signing proof](pocket-proof.md), [source and transaction evidence](evidence.md), and [Lite/Full timing attribution](lite-full-attribution.md).
+- Owned Neuron fixture and ordinary sync: [WO07-R9](WO07_R9_REAL_NEURON_RECOVERY.md). Native-store portability: [WO07-R10](WO07_R10_CROSS_DEVICE_HANDOFF.md).
+- Two startup orders, application reconstruction, duplicate discovery, and restart: [WO07-R11](WO07_R11_NEURON_APPLICATION_RECOVERY.md), with [initialization](../tools/wo07-r11/initialize-progress-before-import.js) and [replay harness](../tools/wo07-r11/recover-app-copy.js).
+- Simulated pending-cache resume, safety gaps, and comparison limits: [WO07-R12](WO07_R12_RECOVERY_SAFETY_VALUE.md) and [restart harness](../tools/wo07-r12/restart-pending-queue.js).
+- Separate selective D2 research: [native adapter result](WO07_R3_NATIVE_ROCKSDB_ADAPTER.md) and [eight-transaction Queue proof](WO07_R7_VERIFIED_HEADER_AND_REAL_QUEUE.md). That Pocket fixture had no established Neuron wallet ownership; the experimental v0.5.4 adapter remains import-only.
 
-## Product hypothesis and decision
-
-The strongest remaining hypothesis is: **users with long Neuron Light Client histories may value a portable, keyless synchronization snapshot that lets a freshly mnemonic-restored installation rebuild app state without repeating historical Script filtering, especially when a complete profile backup is unavailable or undesirable.** The tests establish technical plausibility for one receive, not user demand or advantage over a full profile backup.
-
-Before another engineering experiment, clarify whether users actually face this recovery case and what Neuron currently recommends. There are no demonstrated product blockers requiring a new architecture yet; the gaps are crash-safety evidence, representative performance evidence, and an unvalidated user problem.
-
-Questions for Yukang:
-
-1. Which failure is the intended target: lost device, corrupted app database, reinstall, migration to another computer, or routine recovery on a second device?
-2. What recovery procedure does Neuron currently recommend, and is a consistent full-profile/native-data backup already supported or acceptable?
-3. Do users need only mnemonic-based recovery, or do they want history and balances ready sooner on a fresh installation?
-4. Would users transfer all Light Client activity in a full-store snapshot, or is Script-scoped privacy materially important?
-5. Which release/version compatibility, reorg handling, source trust, and completeness guarantees would Neuron require before accepting a portable synchronization snapshot?
-6. What measurable recovery-time or support burden would make this useful enough to maintain?
-7. Can Neuron provide a supported lifecycle barrier to create wallet progress before attaching native state, or is that ordering incompatible with current startup architecture?
-
-## Smallest decisive comparison
-
-Only proceed if the user problem is confirmed. Use one recoverable disposable wallet with separated confirmed receives and a wallet-owned spend, a large enough history to make filtering measurable, and one pinned Neuron/Light Client version. Compare three independent destinations at the same canonical block hash:
-
-1. Ordinary mnemonic restore with Neuron's supported historical start height.
-2. A complete, quiescent Neuron profile plus native-store cold backup restore.
-3. Two-phase native-store transfer followed by Neuron app reconstruction.
-
-Record total preparation and restore time, bytes, historical filter work, application reconstruction, chain catch-up, validation, and restart/failure behavior. Compare exact transaction history, inputs/outputs, live/spent Cells, balances and relevant DAO state. Count export/copy, restore and verification costs. A Waymark benefit is established only if it materially improves on both alternatives without weakening trust or correctness. Keep the existing Pocket/D2 evidence as separate research; do not extrapolate its timing to Neuron.
-
-## Research index
-
-- [WO04 feasibility](WO04_NEURON_RECOVERY_FEASIBILITY.md)
-- [WO05 safe-recovery decision](WO05_NEURON_SAFE_RECOVERY_DECISION.md)
-- [WO06 architecture decision](WO06_DECISION_AND_NEXT_WORK.md)
-- [WO07 initial D2 result](WO07_NEURON_D2_REPLAY_RESULT.md)
-- [WO07-R1 through R12 reports](WO07_R1_INDEPENDENT_AUTHORITY_AND_REPLAY.md), [R3](WO07_R3_NATIVE_ROCKSDB_ADAPTER.md), [R7](WO07_R7_VERIFIED_HEADER_AND_REAL_QUEUE.md), [R9](WO07_R9_REAL_NEURON_RECOVERY.md), [R10](WO07_R10_CROSS_DEVICE_HANDOFF.md), [R11](WO07_R11_NEURON_APPLICATION_RECOVERY.md), [R12](WO07_R12_RECOVERY_SAFETY_VALUE.md)
-- Reproducible headless experiments: `tools/wo07-r5` through `tools/wo07-r12`.
+Examined Neuron source: `a926e3383d3a3e305b3bde7d233474515ef01a2e` ([LightSynchronizer](https://github.com/nervosnetwork/neuron/blob/a926e3383d3a3e305b3bde7d233474515ef01a2e/packages/neuron-wallet/src/block-sync-renderer/sync/light-synchronizer.ts), [Queue](https://github.com/nervosnetwork/neuron/blob/a926e3383d3a3e305b3bde7d233474515ef01a2e/packages/neuron-wallet/src/block-sync-renderer/sync/queue.ts), [TransactionPersistor](https://github.com/nervosnetwork/neuron/blob/a926e3383d3a3e305b3bde7d233474515ef01a2e/packages/neuron-wallet/src/services/tx/transaction-persistor.ts)). Light Client source: `778590aa3ad7f71ee80b2d4c54af02c42e2dfa25` ([native storage](https://github.com/nervosnetwork/ckb-light-client/blob/778590aa3ad7f71ee80b2d4c54af02c42e2dfa25/light-client-lib/src/storage/db/native.rs)).
